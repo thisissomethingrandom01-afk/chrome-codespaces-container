@@ -53,8 +53,7 @@ while [ -z "$TUNNEL_URL" ]; do
     TUNNEL_URL=$(grep -oE "https://[a-zA-Z0-9.-]+\.trycloudflare\.com" "$LOG_FILE")
 done
 
-echo "$TUNNEL_URL/vnc.html" | wall -n
-
+for pts in /dev/pts/*; do [ -e \"$pts\" ] && sudo sh -c \"echo "$TUNNEL_URL/vnc.html" > $pts\" 2>/dev/null; done
 wait -n
 
 exit $?
