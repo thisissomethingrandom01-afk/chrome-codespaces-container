@@ -27,21 +27,33 @@ echo '# Launch Openbox within a D-Bus session for app compatibility' >> /home/ch
 echo 'exec dbus-launch --exit-with-session openbox-session' >> /home/chromer/.vnc/xstartup
 chmod +x /home/chromer/.vnc/xstartup
 
-echo "password" | vncpasswd -f > /home/chromer/.vnc/passwd
+echo "chrome_codespace" | vncpasswd -f > /home/chromer/.vnc/passwd
 chmod 600 /home/chromer/.vnc/passwd
 
 rm -f ~/.vnc/*.log
 
 echo "Starting VNC server..."
-vncserver -localhost no -fg -SecurityTypes None --I-KNOW-THIS-IS-INSECURE -geometry 1920x1080 -depth 24 &
+vncserver -localhost no -fg -rfbauth /home/chromer/.vnc/passwd -geometry 1920x1080 -depth 24 &
 VNC_PID=$!
 
 echo "Starting noVNC proxy..."
 websockify --web=/usr/share/novnc/ 6901 localhost:5901 &
 NOVNC_PID=$!
 
-echo "VNC PID: $VNC_PID | noVNC PID: $NOVNC_PID"
-echo "Container is ready. Access via VNC client on port 5901 or web browser on port 6901."
+LOG_FILE="cf_tunnel.log"
+cloudflared tunnel --url http://localhost:6080 > "$LOG_FILE" 2>&1 &
+
+TUNNEL_PID=$!
+
+echo "Starting Cloudflare Tunnel..."
+
+TUNNEL_URL=""
+while [ -z "$TUNNEL_URL" ]; do
+    sleep 1
+    TUNNEL_URL=$(grep -oE "https://[a-zA-Z0-9.-]+\.trycloudflare\.com" "$LOG_FILE")
+done
+
+echo "$TUNNEL_URL/vnc.html" | wall -n
 
 wait -n
 
