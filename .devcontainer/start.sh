@@ -27,14 +27,11 @@ echo '# Launch Openbox within a D-Bus session for app compatibility' >> /home/ch
 echo 'exec dbus-launch --exit-with-session openbox-session' >> /home/chromer/.vnc/xstartup
 chmod +x /home/chromer/.vnc/xstartup
 
-echo -n "chromer" | vncpasswd -f > /home/chromer/.vnc/passwd
-sudo chown chromer:chromer /home/chromer/.vnc/passwd
-chmod 600 /home/chromer/.vnc/passwd
 
 rm -f ~/.vnc/*.log
 
 echo "Starting VNC server..."
-vncserver -localhost no -fg -geometry 1920x1080 -depth 24 &
+vncserver -localhost no -fg -SecurityTypes None --I-KNOW-THIS-IS-INSECURE -geometry 1920x1080 -depth 24 &
 VNC_PID=$!
 
 echo "Starting noVNC proxy..."
