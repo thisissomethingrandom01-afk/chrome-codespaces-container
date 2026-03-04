@@ -27,7 +27,8 @@ echo '# Launch Openbox within a D-Bus session for app compatibility' >> /home/ch
 echo 'exec dbus-launch --exit-with-session openbox-session' >> /home/chromer/.vnc/xstartup
 chmod +x /home/chromer/.vnc/xstartup
 
-echo "chrome_codespace" | vncpasswd -f > /home/chromer/.vnc/passwd
+echo "chrome" | vncpasswd -f > /home/chromer/.vnc/passwd
+sudo chown chromer:chromer /home/chromer/.vnc/passwd
 chmod 600 /home/chromer/.vnc/passwd
 
 rm -f ~/.vnc/*.log
@@ -50,10 +51,15 @@ echo "Starting Cloudflare Tunnel..."
 TUNNEL_URL=""
 while [ -z "$TUNNEL_URL" ]; do
     sleep 1
-    TUNNEL_URL=$(grep -oE "https://[a-zA-Z0-9.-]+\.trycloudflare\.com" "$LOG_FILE")
+    TUNNEL_URL=$(grep -oE "https://[a-zA-Z0-9.-]+\.trycloudflare\.com" "$LOG_FILE" | head -n 1)
 done
 
-for pts in /dev/pts/*; do [ -e \"$pts\" ] && sudo sh -c \"echo "$TUNNEL_URL/vnc.html" > $pts\" 2>/dev/null; done
-wait -n
+# Broadcast to all terminals
+for pts in /dev/pts/*; do
+    # Only try to write to numeric pts (terminals), skip ptmx
+    [[ $(basename "$pts") =~ ^[0-9]+$ ]] && echo "$TUNNEL_URL/vnc.html" | sudo tee "$pts" > /dev/null 2>&1
+done
 
+echo "Tunnel active: $TUNNEL_URL/vnc.html"
+wait $TUNNEL_PID
 exit $?
