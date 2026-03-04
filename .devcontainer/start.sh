@@ -41,7 +41,7 @@ websockify --web=/usr/share/novnc/ 6901 localhost:5901 &
 NOVNC_PID=$!
 
 LOG_FILE="cf_tunnel.log"
-cloudflared tunnel --url http://localhost:6080 > "$LOG_FILE" 2>&1 &
+cloudflared tunnel --url http://localhost:6901 > "$LOG_FILE" 2>&1 &
 
 TUNNEL_PID=$!
 
